@@ -6,8 +6,7 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 #include <ESP8266WebServer.h>
 #include <Wire.h>
 #include "font.h"
-//#define offset 0x00    // SDD1306                      // offset=0 for SSD1306 controller
-#define offset 0x02    // SH1106                       // offset=2 for SH1106 controller
+#define offset 0x00    // SDD1306                      // offset=0 for SSD1306 controller
 #define OLED_address  0x3c                             // all the OLED's I have seen have this address
 #define SSID "........"                              // insert your SSID
 #define PASS "........"                              // insert your password
