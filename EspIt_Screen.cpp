@@ -6,7 +6,7 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 
 //==========================================================//
 // Resets display depending on the actual mode.
-public static void reset_display(void)
+ void reset_display(void)
 {
   displayOff();
   clear_display();
@@ -15,21 +15,21 @@ public static void reset_display(void)
 
 //==========================================================//
 // Turns display on.
-public void displayOn(void)
+ void displayOn(void)
 {
   sendcommand(0xaf);        //display on
 }
 
 //==========================================================//
 // Turns display off.
-public void displayOff(void)
+ void displayOff(void)
 {
   sendcommand(0xae);		//display off
 }
 
 //==========================================================//
 // Clears the display by sendind 0 to all the screen map.
-public static void clear_display(void)
+ void clear_display(void)
 {
   unsigned char i,k;
   for(k=0;k<8;k++)
@@ -49,7 +49,7 @@ public static void clear_display(void)
 // Actually this sends a byte, not a char to draw in the display. 
 // Display's chars uses 8 byte font the small ones and 96 bytes
 // for the big number font.
-private static void SendChar(unsigned char data) 
+ void SendChar(unsigned char data) 
 {
   //if (interrupt && !doing_menu) return;   // Stop printing only if interrupt is call but not in button functions
   
@@ -63,7 +63,7 @@ private static void SendChar(unsigned char data)
 // Prints a display char (not just a byte) in coordinates X Y,
 // being multiples of 8. This means we have 16 COLS (0-15) 
 // and 8 ROWS (0-7).
-public static void sendCharXY(unsigned char data, int X, int Y)
+ void sendCharXY(unsigned char data, int X, int Y)
 {
   setXY(X, Y);
   Wire.beginTransmission(OLED_address); // begin transmitting
@@ -77,7 +77,7 @@ public static void sendCharXY(unsigned char data, int X, int Y)
 
 //==========================================================//
 // Used to send commands to the display.
-private static void sendcommand(unsigned char com)
+ void sendcommand(unsigned char com)
 {
   Wire.beginTransmission(OLED_address);     //begin transmitting
   Wire.write(0x80);                          //command mode
@@ -87,7 +87,7 @@ private static void sendcommand(unsigned char com)
 
 //==========================================================//
 // Set the cursor position in a 16 COL * 8 ROW map.
-private static void setXY(unsigned char row,unsigned char col)
+ void setXY(unsigned char row,unsigned char col)
 {
   sendcommand(0xb0+row);                //set page address
   sendcommand(offset+(8*col&0x0f));       //set low col address
@@ -98,7 +98,7 @@ private static void setXY(unsigned char row,unsigned char col)
 //==========================================================//
 // Prints a string in coordinates X Y, being multiples of 8.
 // This means we have 16 COLS (0-15) and 8 ROWS (0-7).
-static void sendStrXY( char *string, int X, int Y)
+ void sendStrXY(const char *string, int X, int Y)
 {
   setXY(X,Y);
   unsigned char i=0;
@@ -115,7 +115,7 @@ static void sendStrXY( char *string, int X, int Y)
 
 //==========================================================//
 // Inits oled and draws logo at startup
-static void init_OLED(void)
+ void init_OLED(void)
 {
 	pinMode(15, OUTPUT);
 	digitalWrite(15, HIGH); //Switch from Bootpins to I2C-Screen
@@ -167,5 +167,4 @@ static void init_OLED(void)
   sendcommand(0x00);            //Set Memory Addressing Mode ab Horizontal addressing mode
   //  sendcommand(0x02);         // Set Memory Addressing Mode ab Page addressing mode(RESET)  
 }
-
 
