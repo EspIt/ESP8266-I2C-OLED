@@ -248,6 +248,8 @@ static void sendStrXY( char *string, int X, int Y)
 // Inits oled and draws logo at startup
 static void init_OLED(void)
 {
+	pinMode(15, OUTPUT);
+	digitalWrite(15, HIGH); //Switch from Bootpins to I2C-Screen
   sendcommand(0xae);		//display off
   sendcommand(0xa6);            //Set Normal Display (default)
     // Adafruit Init sequence for 128x64 OLED module
