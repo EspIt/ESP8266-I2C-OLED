@@ -1,20 +1,17 @@
 # ESP8266-I2C-OLED
-A I2C screen to show messages received from a client-browser.
 
-Copy the ESP_Messenger into your Arduino IDE and save as a new file.
-Also copy the font.h file in the same folder.
+This is a Library for use with the integrated I2C Oled Screen. It is based on [hurricaneMitch's fork of costonisp's Webserver with the Screen](https://github.com/hurricaneMitch/ESP8266-I2C-OLED "hurricaneMitch's repo"). Other features are Inspired by [Adafruit's SDD1306 Library](https://github.com/adafruit/Adafruit_SSD1306 "Adafruit's repo").
 
-Make sure you installed ARDUINO-ESP-IDE addon. https://github.com/sandeepmistry/esp8266-Arduino
-In the Arduino IDE you choose generic ESP module as boardtype it will compile without errors.
+To use it just `#include "EspIt_Screen.h"` and you are good to go.
 
-On start-up the local-IP is shown on the OLED.
-In your browser type the local-IP of the ESP server, it will open a simple page where you can submit a string of text.
-This text will be shown on the oled that is connected to the ESP.
+### Function table
 
-Connections Oled - ESP8266:
-
-Oled-SDA connected to GPIO0 of ESP
-
-Oled-SCL connected to GPIO2 of ESP
-The I2C Oled board used has a SDD1306 controller. I did not (yet) test this sketch different controllers line SH1106.
-
+```c
+init_Oled(); //Initialized the Oled-Screen
+reset_display(); //Performes a full reset of the Screen
+displayOff(); //Switches the Display off
+displayOn(); //Switches it Back on
+clear_display(); //Switches all pixels off
+sendCharXY(unsigned char data, int X, int Y); //Draws the Character "data", 8px in width, 8px in height, at position X (0-15) | Y (0-7)
+sendStrXY(const char *string, int X, int Y); //Draws the String "string", 8px in width, 8px in height, at position X (0-15) | Y (0-7). automatically creates a newline if needed.
+```
