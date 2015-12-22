@@ -8,6 +8,16 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 #define offset 0x00    // SDD1306                      // offset=0 for SSD1306 controller
 #define OLED_address  0x3c                             // all the OLED's I have seen have this address
 
+ void set8Pixel(int, int, unsigned char data);
+
+ void setPixel(int, int, bool);
+
+ void drawLine(int, int, int, int, bool);
+ 
+ void drawCircle(int, int, int, bool);
+
+ void fillCircle(int, int, int, bool);
+
 //==========================================================//
 // Resets display depending on the actual mode.
  void reset_display(void);
@@ -42,7 +52,11 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 
 //==========================================================//
 // Set the cursor position in a 16 COL * 8 ROW map.
- void setXY(unsigned char row,unsigned char col);
+ void setRowCol(unsigned char row,unsigned char col);
+
+//==========================================================//
+// Set the cursor position in X and Y coordinates
+ void setXY(unsigned char x,unsigned char y);
 
 //==========================================================//
 // Prints a string in coordinates X Y, being multiples of 8.

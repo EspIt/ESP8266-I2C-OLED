@@ -4,6 +4,121 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 
 #include "EspIt_Screen.h"
 
+unsigned char screen[128][8]; //1kB | Screenmap
+
+void set8Pixel(int row, int x, unsigned char data){
+  screen[x][row] = data;
+  setXY(x, row);
+  SendChar(screen[x][row]);
+}
+
+inline void horLine(int x, int y2, int y1, bool on){
+  if(y1 == y2){
+    if(on){
+      set8Pixel(y1/8, x, screen[x][y1/8] | (((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y1 & 7)))));
+    }
+    else{
+      set8Pixel(y1/8, x, screen[x][y1/8] & ~(((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y1 & 7)))));
+    }
+    return;
+  }
+  
+  if(on){
+    set8Pixel(y1/8, x, screen[x][y1/8] | (0xFF) << (y1 & 7));
+    set8Pixel(y2/8, x, screen[x][y2/8] | (0xFF) >> (8-(y2 & 7)));
+  }
+  else{
+    set8Pixel(y1/8, x, screen[x][y1/8] & ~((0xFF) << (y1 & 7)));
+    set8Pixel(y2/8, x, screen[x][y2/8] & ~((0xFF) >> (8-(y2 & 7))));
+  }
+  for(int i = (y1/8) + 1; i <= (y2/8) - 1; ++i){
+    if(on){
+      set8Pixel(i, x, screen[x][i] | (0xFF));
+    }
+    else{
+      set8Pixel(i, x, screen[x][i] & ~(0xFF));
+    }
+  }
+}
+
+void setPixel(int x, int y, bool on){
+  if(on){
+    set8Pixel(y/8, x, screen[x][y/8] | ((unsigned char)on) << (y & 7));
+  }
+  else{
+    set8Pixel(y/8, x, screen[x][y/8] & ~(((unsigned char)on) << (y & 7)));
+  }
+}
+
+void drawLine(int x1, int y1, int x2, int y2, bool on){
+  //Source: Rosetta Code, http://rosettacode.org/wiki/Bitmap/Bresenham's_line_algorithm#C
+  int dx = abs(x2-x1), sx = x1<x2 ? 1 : -1;
+  int dy = abs(y2-y1), sy = y1<y2 ? 1 : -1; 
+  int err = (dx>dy ? dx : -dy)/2, e2;
+ 
+  for(;;){
+    setPixel(x1,y1, on);
+    if (x1==x2 && y1==y2) break;
+    e2 = err;
+    if (e2 >-dx) { err -= dy; x1 += sx; }
+    if (e2 < dy) { err += dx; y1 += sy; }
+  }
+}
+
+void drawCircle(int r, int x0, int y0, bool on){
+  //Source: Wikipedia, https://en.wikipedia.org/wiki/Midpoint_circle_algorithm#Example
+  int x = r;
+  int y = 0;
+  int decisionOver2 = 1 - x;   // Decision criterion divided by 2 evaluated at x=r, y=0
+
+  while( y <= x )
+  {
+    setPixel( x + x0,  y + y0, on); // Octant 1
+    setPixel( y + x0,  x + y0, on); // Octant 2
+    setPixel(-x + x0,  y + y0, on); // Octant 4
+    setPixel(-y + x0,  x + y0, on); // Octant 3
+    setPixel(-x + x0, -y + y0, on); // Octant 5
+    setPixel(-y + x0, -x + y0, on); // Octant 6
+    setPixel( x + x0, -y + y0, on); // Octant 8
+    setPixel( y + x0, -x + y0, on); // Octant 7
+    y++;
+    if (decisionOver2<=0)
+    {
+      decisionOver2 += 2 * y + 1;   // Change in decision criterion for y -> y+1
+    }
+    else
+    {
+      x--;
+      decisionOver2 += 2 * (y - x) + 1;   // Change for y -> y+1, x -> x-1
+    }
+  }
+}
+
+void fillCircle(int r, int x0, int y0, bool on){
+  //Source: Wikipedia, https://en.wikipedia.org/wiki/Midpoint_circle_algorithm#Example
+  int x = r;
+  int y = 0;
+  int decisionOver2 = 1 - x;   // Decision criterion divided by 2 evaluated at x=r, y=0
+
+  while( y <= x )
+  {
+    horLine( x + x0, y + y0, -y + y0, on);
+    horLine( y + x0, x + y0, -x + y0, on);
+    horLine( -x + x0, y + y0, -y + y0, on);
+    horLine( -y + x0, x + y0, -x + y0, on);
+    y++;
+    if (decisionOver2<=0)
+    {
+      decisionOver2 += 2 * y + 1;   // Change in decision criterion for y -> y+1
+    }
+    else
+    {
+      x--;
+      decisionOver2 += 2 * (y - x) + 1;   // Change for y -> y+1, x -> x-1
+    }
+  }
+}
+
 //==========================================================//
 // Resets display depending on the actual mode.
  void reset_display(void)
@@ -34,10 +149,11 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
   unsigned char i,k;
   for(k=0;k<8;k++)
   {	
-    setXY(k,0);    
+    setRowCol(k,0);    
     {
       for(i=0;i<(128 + 2 * offset);i++)     //locate all COL
       {
+        screen[i][k] = 0x00; //Clear internal Buffer
         SendChar(0);         //clear all COL
         //delay(10);
       }
@@ -49,7 +165,7 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 // Actually this sends a byte, not a char to draw in the display. 
 // Display's chars uses 8 byte font the small ones and 96 bytes
 // for the big number font.
- void SendChar(unsigned char data) 
+inline void SendChar(unsigned char data) 
 {
   //if (interrupt && !doing_menu) return;   // Stop printing only if interrupt is call but not in button functions
   
@@ -65,19 +181,23 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 // and 8 ROWS (0-7).
  void sendCharXY(unsigned char data, int X, int Y)
 {
-  setXY(X, Y);
+  setRowCol(X, Y);
   Wire.beginTransmission(OLED_address); // begin transmitting
   Wire.write(0x40);//data mode
   
-  for(int i=0;i<8;i++)          
-    Wire.write(pgm_read_byte(myFont[data-0x20]+i));
+  for(int i=0;i<8;i++){
+    unsigned char tmp = pgm_read_byte(myFont[data-0x20]+i);
+    Wire.write(tmp);
+
+    screen[X + i][Y] = tmp;
+  }
     
   Wire.endTransmission();    // stop transmitting
 }
 
 //==========================================================//
 // Used to send commands to the display.
- void sendcommand(unsigned char com)
+inline void sendcommand(unsigned char com)
 {
   Wire.beginTransmission(OLED_address);     //begin transmitting
   Wire.write(0x80);                          //command mode
@@ -87,11 +207,17 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 
 //==========================================================//
 // Set the cursor position in a 16 COL * 8 ROW map.
- void setXY(unsigned char row,unsigned char col)
+ void setRowCol(unsigned char row,unsigned char col)
 {
   sendcommand(0xb0+row);                //set page address
   sendcommand(offset+(8*col&0x0f));       //set low col address
   sendcommand(0x10+((8*col>>4)&0x0f));  //set high col address
+}
+
+inline void setXY(unsigned char x, unsigned char y){
+  sendcommand(0xb0+(y));
+  sendcommand(offset+(x&0x0f));     
+  sendcommand(0x10+((x>>4)&0x0f));
 }
 
 
@@ -100,13 +226,16 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
 // This means we have 16 COLS (0-15) and 8 ROWS (0-7).
  void sendStrXY(const char *string, int X, int Y)
 {
-  setXY(X,Y);
+  setRowCol(Y,X);
   unsigned char i=0;
   while(*string)
   {
     for(i=0;i<8;i++)
     {
-      SendChar(pgm_read_byte(myFont[*string-0x20]+i));
+      unsigned char tmp = pgm_read_byte(myFont[*string-0x20]+i);
+
+      screen[X + i][Y] = tmp;
+      SendChar(tmp);
     }
     *string++;
   }
