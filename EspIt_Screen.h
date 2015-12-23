@@ -39,28 +39,10 @@ Version 1.0 supports OLED display's with either SDD1306 or with SH1106 controlle
  void clear_display(void);
 
 //==========================================================//
-// Actually this sends a byte, not a char to draw in the display. 
-// Display's chars uses 8 byte font the small ones and 96 bytes
-// for the big number font.
- void SendChar(unsigned char data);
-
-//==========================================================//
 // Prints a display char (not just a byte) in coordinates X Y,
 // being multiples of 8. This means we have 16 COLS (0-15) 
 // and 8 ROWS (0-7).
  void sendCharXY(unsigned char data, int X, int Y);
-
-//==========================================================//
-// Used to send commands to the display.
- void sendcommand(unsigned char com);
-
-//==========================================================//
-// Set the cursor position in a 16 COL * 8 ROW map.
- void setRowCol(unsigned char row,unsigned char col);
-
-//==========================================================//
-// Set the cursor position in X and Y coordinates
- void setXY(unsigned char x,unsigned char y);
 
 //==========================================================//
 // Prints a string in coordinates X Y, being multiples of 8.

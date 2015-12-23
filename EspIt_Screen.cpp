@@ -220,7 +220,7 @@ inline void sendcommand(unsigned char com)
 
 //==========================================================//
 // Set the cursor position in a 16 COL * 8 ROW map.
- void setRowCol(unsigned char row,unsigned char col)
+inline void setRowCol(unsigned char row,unsigned char col)
 {
   sendcommand(0xb0+row);                //set page address
   sendcommand(off+(8*col&0x0f));       //set low col address
