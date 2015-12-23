@@ -18,5 +18,6 @@ setPixel(int x, int y, bool on); //Switches pixel at pos (X|Y) to either on or o
 drawLine(int x1, int y1, int x2, int y2, bool on); // Draws a Line from pos (X1|Y1) to (X2|Y2), either on or off, based on the boolean.
 drawCircle(int r, int x0, int y0); // Draws a Circle at Point (X0|Y0) with the Radius r, either on or off, based on the boolean.
 fillCircle(int r, int x0, int y0); // Draws a filled Circle at Point (X0|Y0) with the Radius r, either on or off, based on the boolean.
-
+drawSquare(int left, int top, int width, int height, bool on); //Draws a Square with its top left Point at (Left|Top) with a specified width an height, either on or off, based on the boolean.
+fillSquare(int left, int top, int width, int height, bool on); //Draws a filled Square with its top left Point at (Left|Top) with a specified width an height, either on or off, based on the boolean.
 ```
