@@ -12,13 +12,13 @@ void set8Pixel(int row, int x, unsigned char data){
   SendChar(screen[x][row]);
 }
 
-inline void horLine(int x, int y2, int y1, bool on){
-  if(y1 == y2){
+inline void verLine(int x, int y1, int y2, bool on){
+  if(y1/8 == y2/8){
     if(on){
-      set8Pixel(y1/8, x, screen[x][y1/8] | (((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y1 & 7)))));
+      set8Pixel(y1/8, x, screen[x][y1/8] | (((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y2 & 7)))));
     }
     else{
-      set8Pixel(y1/8, x, screen[x][y1/8] & ~(((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y1 & 7)))));
+      set8Pixel(y1/8, x, screen[x][y1/8] & ~(((0xFF) << (y1 & 7)) & ((0xFF) >> (8-(y2 & 7)))));
     }
     return;
   }
@@ -43,10 +43,10 @@ inline void horLine(int x, int y2, int y1, bool on){
 
 void setPixel(int x, int y, bool on){
   if(on){
-    set8Pixel(y/8, x, screen[x][y/8] | ((unsigned char)on) << (y & 7));
+    set8Pixel(y/8, x, screen[x][y/8] | ((unsigned char)true) << (y & 7));
   }
   else{
-    set8Pixel(y/8, x, screen[x][y/8] & ~(((unsigned char)on) << (y & 7)));
+    set8Pixel(y/8, x, screen[x][y/8] & ~(((unsigned char)true) << (y & 7)));
   }
 }
 
@@ -63,6 +63,19 @@ void drawLine(int x1, int y1, int x2, int y2, bool on){
     if (e2 >-dx) { err -= dy; x1 += sx; }
     if (e2 < dy) { err += dx; y1 += sy; }
   }
+}
+
+void fillSquare(int left, int top, int width, int height, bool on){
+  for(int i = left; i < width + left; ++i){
+    verLine(i, top, top + height, on);
+  }
+}
+
+void drawSquare(int left, int top, int width, int height, bool on){
+  verLine(left, top, top + height - 1, on);
+  drawLine(left, top, left + width - 1, top, on);
+  drawLine(left, top + height - 1, left + width - 1, top + height - 1, on);
+  verLine(left + width - 1, top, top + height - 1, on);
 }
 
 void drawCircle(int r, int x0, int y0, bool on){
@@ -102,10 +115,10 @@ void fillCircle(int r, int x0, int y0, bool on){
 
   while( y <= x )
   {
-    horLine( x + x0, y + y0, -y + y0, on);
-    horLine( y + x0, x + y0, -x + y0, on);
-    horLine( -x + x0, y + y0, -y + y0, on);
-    horLine( -y + x0, x + y0, -x + y0, on);
+    verLine( x + x0, -y + y0, y + y0, on);
+    verLine( y + x0, -x + y0, x + y0, on);
+    verLine( -x + x0, -y + y0, y + y0, on);
+    verLine( -y + x0, -x + y0, x + y0, on);
     y++;
     if (decisionOver2<=0)
     {
@@ -151,7 +164,7 @@ void fillCircle(int r, int x0, int y0, bool on){
   {	
     setRowCol(k,0);    
     {
-      for(i=0;i<(128 + 2 * offset);i++)     //locate all COL
+      for(i=0;i<(128 + 2 * off);i++)     //locate all COL
       {
         screen[i][k] = 0x00; //Clear internal Buffer
         SendChar(0);         //clear all COL
@@ -210,13 +223,13 @@ inline void sendcommand(unsigned char com)
  void setRowCol(unsigned char row,unsigned char col)
 {
   sendcommand(0xb0+row);                //set page address
-  sendcommand(offset+(8*col&0x0f));       //set low col address
+  sendcommand(off+(8*col&0x0f));       //set low col address
   sendcommand(0x10+((8*col>>4)&0x0f));  //set high col address
 }
 
 inline void setXY(unsigned char x, unsigned char y){
   sendcommand(0xb0+(y));
-  sendcommand(offset+(x&0x0f));     
+  sendcommand(off+(x&0x0f));     
   sendcommand(0x10+((x>>4)&0x0f));
 }
 
@@ -293,7 +306,7 @@ inline void setXY(unsigned char x, unsigned char y){
   // sendcommand(0xa7);  //Set Inverse Display  
   // sendcommand(0xae);		//display off
   sendcommand(0x20);            //Set Memory Addressing Mode
-  sendcommand(0x00);            //Set Memory Addressing Mode ab Horizontal addressing mode
+  sendcommand(0x00);            //Set Memory Addressing Mode ab horizontal addressing mode
   //  sendcommand(0x02);         // Set Memory Addressing Mode ab Page addressing mode(RESET)  
 }
 
